@@ -1,0 +1,39 @@
+<link rel="stylesheet" th:href="@{/styles/components/storage-items.css}"/>
+
+<div th:if="${storageItems != null and storageItems.size() > 0}">
+    <ul id="fileList">
+        <!--/*@thymesVar id="item" type="com.farneser.cloudfilestorage.dto.StorageDto"*/-->
+        <li th:class="${item.isDir()} ? 'folder' : 'file'" th:each="item : ${storageItems}">
+            <div th:if="${item.isDir()}">
+                <a class="fileList-title" th:href="${'/?path=' + item.getValidUrlPath()}"
+                   th:text="${item.getItemName()}"></a>
+            </div>
+
+            <div th:unless="${item.isDir()}">
+                <span class="fileList-title" th:text="${item.getItemName()}"></span>
+            </div>
+
+            <div class="actions">
+                <div>
+                    <a class="actions-button download"
+                       th:href="${'/storage?path=' + item.getValidUrlPath()}">Download</a>
+                </div>
+                <div>
+                    <button class="actions-button rename" onclick="currentRename(this)"
+                            th:value="${item.getItemPath()}">Rename
+                    </button>
+                </div>
+
+                <form action="/storage/delete" method="post">
+                    <input name="path" th:value="${path}" type="hidden">
+                    <input name="objectName" th:value="${item.getItemPath()}" type="hidden">
+                    <input class="actions-button delete" type="submit" value="Delete"/>
+                </form>
+            </div>
+        </li>
+    </ul>
+</div>
+
+<div th:if="${storageItems == null or storageItems.size() == 0}">
+    <div class="not-found">Storage items not found</div>
+</div>
