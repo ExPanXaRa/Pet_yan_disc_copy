@@ -1,0 +1,44 @@
+spring:
+  servlet:
+    multipart:
+      enabled: false
+  thymeleaf:
+    encoding: UTF-8
+  datasource:
+    url: jdbc:postgresql://${HOST}:${POSTGRES_PORT}/${POSTGRES_DB}?currentSchema=${POSTGRES_SCHEMA}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+        hbm2ddl:
+          auto: validate
+    open-in-view: false
+  liquibase:
+    change-log: classpath:/db/changelog/db.changelog-master.yaml
+    enabled: true
+    default-schema: ${POSTGRES_SCHEMA}
+  session:
+    timeout: 86400
+  data:
+    redis:
+      host: ${HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
+minio:
+  url: http://${HOST}:${MINIO_PORT}
+  bucket: user-files
+  user: ${MINIO_USER}
+  password: ${MINIO_PASSWORD}
+
+app:
+  user-folder:
+    prefix: user-
+    suffix: -files
+  max-file-size: 104857600
+
+
+

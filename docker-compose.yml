@@ -1,51 +1,55 @@
 version: '3'
+
 services:
-  postgres:
-    image: postgres:latest
-    container_name: postgres-container
+
+  db:
+    image: postgres:15.3
+    restart: always
     ports:
-      - "15432:5432"
+      - "5432:5432"
     environment:
-      POSTGRES_DB: postgres
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      PGDATA: ${PGDATA}
+    healthcheck:
+      test: ["CMD-SHELL", "sh -c 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     volumes:
-      - data/postgres-data:/var/lib/postgresql/data
-      - data/init-scripts:/docker-entrypoint-initdb.d
+      - ./data/init-scripts/:/docker-entrypoint-initdb.d/
+
   redis:
-    image: redis:latest
-    container_name: redis-container
+    image: redis:7.0
+    restart: always
     ports:
-      - "16379:6379"
-  minio:
-    image: minio/minio:latest
-    container_name: minio-container
+      - "6379:6379"
     environment:
-      MINIO_ACCESS_KEY: youraccesskey
-      MINIO_SECRET_KEY: yoursecretkey
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_PORT: ${REDIS_PORT}
+
+  minio:
+    image: quay.io/minio/minio:RELEASE.2024-01-31T20-20-33Z
+    command: server /data --console-address ":9001"
     ports:
-      - "19000:9000"
-      - "19001:9001"
-    volumes:
-      - data/minio-data:/data
-    command: server --console-address ":9001" /data
-  cloud-file-storage:
-    container_name: cloud-file-storage
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_PASSWORD}
+
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      minio:
+        condition: service_started
+    env_file:
+      - .env
     ports:
       - "8080:8080"
-    depends_on:
-      - postgres
-      - minio
-      - redis
-    environment:
-      POSTGRES_HOST: postgres
-      POSTGRES_PORT: 5432
-      POSTGRES_DB: cloud-file-storage
-      POSTGRES_USERNAME: postgres
-      POSTGRES_PASSWORD: postgres
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      MINIO_HOST: http://minio:9000
-      MINIO_ACCESS_KEY: youraccesskey
-      MINIO_SECRET_KEY: yoursecretkey
-      MINIO_FILES_BUCKET: user-files
+

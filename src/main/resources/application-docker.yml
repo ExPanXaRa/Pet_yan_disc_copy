@@ -1,0 +1,8 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://db:5432/file_storage?currentSchema=file_storage
+  data:
+    redis:
+      host: redis
+minio:
+  url: http://minio:9000
